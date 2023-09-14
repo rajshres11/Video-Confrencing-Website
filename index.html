@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Conferencing Example</title>
+</head>
+<body>
+    <h1>Video Conferencing</h1>
+    <div id="localVideo"></div>
+    <div id="remoteVideo"></div>
+    <button id="startButton">Start Video</button>
+    <button id="stopButton">Stop Video</button>
+
+    <script>
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        let localStream;
+        let peerConnection;
+
+        // Get user media and display it in the local video element
+        startButton.addEventListener('click', async () => {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+                // Initialize peer connection and add local stream
+                peerConnection = new RTCPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                // Handle remote stream
+                peerConnection.ontrack = (event) => {
+                    remoteVideo.srcObject = event.streams[0];
+                };
+                // TODO: Add signaling logic here
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+            }
+        });
+
+        // Stop video and close peer connection
+        stopButton.addEventListener('click', () => {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+        });
+    </script>
+</body>
+</html>
